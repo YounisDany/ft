@@ -161,6 +161,48 @@
         #voice-btn i, .chat-input button i {
             pointer-events: none;
         }
+.suggestions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 5px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 5px 0;
+    scrollbar-width: none; /* إخفاء السكروول في بعض المتصفحات */
+}
+
+.suggestions::-webkit-scrollbar {
+    display: none; /* إخفاء السكروول للكروم وسفاري */
+}
+
+.suggestion {
+    background-color: var(--secondary-color, #e0f7fa);
+    color: #075e54;
+    padding: 8px 14px;
+    border-radius: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.3s, transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    user-select: none;
+}
+
+.suggestion:hover {
+    background-color: var(--primary-color, #075e54);
+    color: #fff;
+    transform: scale(1.05);
+}
+
+body.dark-mode .suggestion {
+    background-color: #333;
+    color: #fff;
+}
+
+body.dark-mode .suggestion:hover {
+    background-color: #00796b;
+}
+
     </style>
 </head>
 <body class="dark-mode">
@@ -180,6 +222,12 @@
         <div id="chat-box" class="chat-box">
 <div class="message bot slide-in">هلا فيك <br> ممكن تزودنا برقم جوالك ؟</div>        
       </div>
+<div class="suggestions">
+    <span class="suggestion" onclick="setSuggestion('مرحبا')">مرحبا 👋</span>
+    <span class="suggestion" onclick="setSuggestion('وش منتجاتكم؟')">وش منتجاتكم؟ 🛍️</span>
+    <span class="suggestion" onclick="setSuggestion('عندكم توصيل؟')">عندكم توصيل؟ 🚚</span>
+</div>
+
         <!-- منطقة إدخال الرسائل -->
         <div class="chat-input">
             <button id="voice-btn" title="تسجيل صوتي">
@@ -194,6 +242,12 @@
   
         
         <script>
+function setSuggestion(text) {
+    const input = document.getElementById('userInput');
+    input.value = text;
+    input.focus();
+}
+
                 function toggleTheme() {
         const body = document.body;
         body.classList.toggle('dark-mode');
