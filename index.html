@@ -1,394 +1,119 @@
-
-
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
-    <title>  - الدعم الذكي </title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>زر تسجيل الصوت مع أنيميشن Siri</title>
     <style>
-        :root {
-            --primary-color: #075e54;
-            --secondary-color:;
-            --glass-bg: rgba(255, 255, 255, 0.95);
-        }
-
         body {
-            font-family: Tajawal, sans-serif;
-            margin: 0;
-            padding: 0;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        body.light-mode {
-            background-color: #f5f5f5;
-            color: #333;
-        }
-
-        body.dark-mode {
-            background-color: #121212;
-            color: #f5f5f5;
-        }
-
-        .chat-container {
             display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        .chat-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            background-color: var(--primary-color);
-            color: #fff;
-        }
-
-        .profile-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .profile-pic {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        #theme-toggle {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 18px;
-            cursor: pointer;
-        }
-
-        .chat-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        body.light-mode .chat-box {
-            background-color: #f9f9f9;
-        }
-
-        body.dark-mode .chat-box {
-            background-color: #1e1e1e;
-        }
-
-        .message {
-            padding: 10px 15px;
-            border-radius: 15px;
-            margin: 8px 0;
-            max-width: 75%;
-        }
-
-        .message.user {
-            background-color: #dcf8c6;
-            margin-left: auto;
-        }
-
-        body.dark-mode .message.user {
-            background-color: #005c4b;
-            color: #fff;
-        }
-
-        .message.bot {
-            background-color: #f0f0f0;
-            margin-right: auto;
-        }
-
-        body.dark-mode .message.bot {
-            background-color: #333;
-            color: #fff;
-        }
-
-        .chat-input {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            background-color: #fff;
-            border-top: 1px solid #ddd;
-        }
-
-        body.dark-mode .chat-input {
-            background-color: #1e1e1e;
-            border-color: #444;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 12px;
-            border-radius: 25px;
-            border: 1px solid #ccc;
-            outline: none;
-        }
-
-        body.dark-mode .chat-input input {
-            background-color: #2a2a2a;
-            color: #fff;
-            border-color: #555;
-        }
-
-        .chat-input button {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #111;
+            margin: 0;
+        }
+
+        .container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+        }
+
+        #waveCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #recordButton {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: red;
             border: none;
-            cursor: pointer;
-            font-size: 18px;
-            color: #fff;
-            background-color: var(--primary-color);
+            outline: none;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+            transition: background 0.3s, box-shadow 0.3s;
         }
 
-        body.dark-mode .chat-input button {
-            background-color: #1f2c34;
+        #recordButton:active {
+            background: darkred;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 1);
         }
-
-        #voice-btn {
-            background-color: #00796b;
-        }
-
-        #voice-btn i, .chat-input button i {
-            pointer-events: none;
-        }
-.suggestions {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 5px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding: 5px 0;
-    scrollbar-width: none; /* إخفاء السكروول في بعض المتصفحات */
-}
-
-.suggestions::-webkit-scrollbar {
-    display: none; /* إخفاء السكروول للكروم وسفاري */
-}
-
-.suggestion {
-    background-color: var(--secondary-color, #e0f7fa);
-    color: #075e54;
-    padding: 8px 14px;
-    border-radius: 25px;
-    font-size: 14px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background-color 0.3s, transform 0.2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    user-select: none;
-}
-
-.suggestion:hover {
-    background-color: var(--primary-color, #075e54);
-    color: #fff;
-    transform: scale(1.05);
-}
-
-body.dark-mode .suggestion {
-    background-color: #333;
-    color: #fff;
-}
-
-body.dark-mode .suggestion:hover {
-    background-color: #00796b;
-}
-
     </style>
 </head>
-<body class="dark-mode">
-    <div class="chat-container">
-        <!-- شريط العنوان مع صورة البروفايل والاسم -->
-        <div class="chat-header">
-            <div class="profile-info">
-                <img src="default_logo.png" alt="صورة البروفايل" class="profile-pic">
-                <h2>محمد أحمد</h2>
-            </div>
-            <button id="theme-toggle" onclick="toggleTheme()">
-                <i class="fas fa-sun"></i>
-            </button>
-        </div>
+<body>
+    <div class="container">
+        <canvas id="waveCanvas"></canvas>
+        <button id="recordButton"></button>
+    </div>
 
-        <!-- منطقة عرض الرسائل -->
-        <div id="chat-box" class="chat-box">
-<div class="message bot slide-in">هلا فيك <br> ممكن تزودنا برقم جوالك ؟</div>        
-      </div>
-<div class="suggestions">
-    <span class="suggestion" onclick="setSuggestion('مرحبا')">مرحبا 👋</span>
-    <span class="suggestion" onclick="setSuggestion('وش منتجاتكم؟')">وش منتجاتكم؟ 🛍️</span>
-    <span class="suggestion" onclick="setSuggestion('عندكم توصيل؟')">عندكم توصيل؟ 🚚</span>
-</div>
+    <script>
+        const canvas = document.getElementById("waveCanvas");
+        const ctx = canvas.getContext("2d");
+        const recordButton = document.getElementById("recordButton");
 
-        <!-- منطقة إدخال الرسائل -->
-        <div class="chat-input">
-            <button id="voice-btn" title="تسجيل صوتي">
-                <i class="fas fa-microphone"></i>
-            </button>
-            <input type="text" id="userInput" placeholder="اكتب أو تحدث..." onkeypress="handleKeyPress(event)">
-            <button onclick="askAI()">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </div>
-        
-  
-        
-        <script>
-function setSuggestion(text) {
-    const input = document.getElementById('userInput');
-    input.value = text;
-askAI()
-}
+        let isRecording = false;
+        let audioContext = null;
+        let analyser, dataArray, bufferLength, animationId;
 
-                function toggleTheme() {
-        const body = document.body;
-        body.classList.toggle('dark-mode');
-        body.classList.toggle('light-mode');
+        canvas.width = 150;
+        canvas.height = 150;
 
-        const icon = document.getElementById('theme-toggle').querySelector('i');
-        if (body.classList.contains('dark-mode')) {
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-        } else {
-            icon.classList.remove('fa-sun');
-            icon.classList.add('fa-moon');
+        async function setupAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const source = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                source.connect(analyser);
+                analyser.fftSize = 64;
+                bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+            }
         }
-    }
 
-    // ضبط الأيقونة عند تحميل الصفحة
-    document.addEventListener('DOMContentLoaded', () => {
-        const icon = document.getElementById('theme-toggle').querySelector('i');
-        if (document.body.classList.contains('dark-mode')) {
-            icon.classList.add('fa-sun');
-        } else {
-            icon.classList.add('fa-moon');
+        function drawWave() {
+            if (!isRecording) return;
+            analyser.getByteFrequencyData(dataArray);
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.beginPath();
+            for (let i = 0; i < bufferLength; i++) {
+                const value = dataArray[i] / 255;
+                const y = canvas.height / 2 + Math.sin(i * 0.3) * 40 * value;
+                const x = (i / bufferLength) * canvas.width;
+                ctx.lineTo(x, y);
+            }
+
+            ctx.strokeStyle = "rgba(0, 255, 255, 0.8)";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            animationId = requestAnimationFrame(drawWave);
         }
-    });
-            // زر تسجيل الصوت وتحويله إلى نص
-            const voiceBtn = document.getElementById('voice-btn');
-            const userInput = document.getElementById('userInput');
-            let recognition;
-        
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechRecognition();
-                recognition.lang = 'ar-SA'; // دعم العربية
-                recognition.interimResults = false; // جملة كاملة
-        
-                voiceBtn.onclick = () => {
-                    recognition.start();
-                    voiceBtn.classList.add('recording');
-                };
-        
-                recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
-                    userInput.value = transcript;
-                    recognition.stop();
-                    voiceBtn.classList.remove('recording');
-                };
-        
-                recognition.onerror = (event) => {
-                    alert("تعذر التقاط الصوت. تأكد من السماح للميكروفون.");
-                    voiceBtn.classList.remove('recording');
-                };
-        
-            } else {
-                voiceBtn.disabled = true;
-                voiceBtn.title = "متصفحك لا يدعم التسجيل الصوتي";
+
+        recordButton.addEventListener("mousedown", async () => {
+            if (!isRecording) {
+                isRecording = true;
+                await setupAudio();
+                drawWave();
             }
-        
-            // تحسين مؤشر التسجيل
-            const css = document.createElement('style');
-            css.innerHTML = `
-                #voice-btn.recording {
-                    background-color: red;
-                    animation: pulse 1.2s infinite;
-                }
-        
-                @keyframes pulse {
-                    0% { transform: scale(1); }
-                    50% { transform: scale(1.2); }
-                    100% { transform: scale(1); }
-                }
-            `;
-            document.head.appendChild(css);
-        
-            // إكمال الكود العادي مع الوظائف الأخرى
-            function askAI() {
-                const message = userInput.value.trim();
-                if (message === "") return;
-        
-                addMessageWithSlideEffect(message, "user");
-                userInput.value = "";
-        
-                showTypingIndicator();
-        
-                fetch("bot.php", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: "user_message=" + encodeURIComponent(message)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    hideTypingIndicator();
-                    addMessageWithTypingEffect(data.response, "bot");
-                })
-                .catch(() => {
-                    hideTypingIndicator();
-                    addMessageWithSlideEffect("⚠️ حدث خطأ أثناء الاتصال!", "bot");
-                });
-            }
-        
-            function addMessageWithSlideEffect(text, sender) {
-                const chatBox = document.getElementById('chat-box');
-                const messageDiv = document.createElement('div');
-                messageDiv.classList.add('message', sender);
-                messageDiv.innerHTML = text.replace(/\n/g, '<br>');
-                chatBox.appendChild(messageDiv);
-                messageDiv.scrollIntoView({ behavior: 'smooth' });
-        
-                saveMessageToLocalStorage(sender, text);
-            }
-        
-            function showTypingIndicator() {
-                const chatBox = document.getElementById("chat-box");
-                let typingDiv = document.getElementById("typing-indicator");
-                if (!typingDiv) {
-                    typingDiv = document.createElement("div");
-                    typingDiv.id = "typing-indicator";
-                    typingDiv.classList.add("message", "bot");
-                    typingDiv.innerHTML = "جاري الكتابة...";
-                    chatBox.appendChild(typingDiv);
-                }
-                typingDiv.scrollIntoView({ behavior: "smooth" });
-            }
-        
-            function hideTypingIndicator() {
-                const typingDiv = document.getElementById("typing-indicator");
-                if (typingDiv) typingDiv.remove();
-            }
-        
-            function saveMessageToLocalStorage(sender, text) {
-                const storageKey = getStorageKey();
-                const messages = JSON.parse(localStorage.getItem(storageKey)) || [];
-                messages.push({ sender, text });
-                if (messages.length > 100) messages.shift();
-                localStorage.setItem(storageKey, JSON.stringify(messages));
-            }
-        
-            function getStorageKey() {
-                const storeName = window.location.pathname.split('/')[2] || 'default';
-                return `${storeName}_messages`;
-            }
-        </script>
-        
+        });
+
+        recordButton.addEventListener("mouseup", () => {
+            isRecording = false;
+            cancelAnimationFrame(animationId);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+    </script>
 </body>
 </html>
