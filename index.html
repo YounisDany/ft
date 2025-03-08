@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>زر تسجيل الصوت مع أنيميشن Siri</title>
+    <title>زر تسجيل الصوت مع تأثير Siri</title>
     <style>
         body {
             display: flex;
@@ -32,7 +32,7 @@
             top: 50%;
             transform: translate(-50%, -50%);
             box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
-            transition: all 0.3s ease;
+            transition: opacity 0.5s ease, transform 0.5s ease;
             cursor: pointer;
         }
 
@@ -44,6 +44,8 @@
             top: 50%;
             transform: translate(-50%, -50%);
             display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
 
         .wave {
@@ -91,15 +93,21 @@
         const waveContainer = document.getElementById("waveContainer");
 
         recordButton.addEventListener("mousedown", () => {
-            recordButton.style.background = "blue";
-            recordButton.style.boxShadow = "0 0 30px rgba(0, 170, 255, 0.8)";
+            recordButton.style.opacity = "0";
+            recordButton.style.transform = "scale(0.5)";
             waveContainer.style.display = "block";
+            setTimeout(() => {
+                waveContainer.style.opacity = "1";
+            }, 100);
         });
 
         recordButton.addEventListener("mouseup", () => {
-            recordButton.style.background = "red";
-            recordButton.style.boxShadow = "0 0 20px rgba(255, 0, 0, 0.8)";
-            waveContainer.style.display = "none";
+            recordButton.style.opacity = "1";
+            recordButton.style.transform = "scale(1)";
+            waveContainer.style.opacity = "0";
+            setTimeout(() => {
+                waveContainer.style.display = "none";
+            }, 500);
         });
     </script>
 </body>
