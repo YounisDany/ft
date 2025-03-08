@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الصوت مع تأثير الموجة</title>
+    <title>تسجيل الصوت وتحويله إلى نص</title>
     <script src="https://unpkg.com/siriwave/dist/siriwave.umd.min.js"></script>
     <style>
         body {
@@ -41,14 +41,27 @@
             color: white;
             display: none; /* إخفاء زر الإيقاف حتى يبدأ التسجيل */
         }
+        .input-container {
+            margin-top: 20px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
 
-    <h1>تسجيل الصوت مع تأثير الموجة</h1>
+    <h1>تسجيل الصوت وتحويله إلى نص</h1>
     
-    <button class="record" id="start-record">🎤 بدء التسجيل</button>
-    <button class="stop" id="stop-record">⏹️ إيقاف التسجيل</button>
+    <div class="input-container">
+        <input type="text" id="text-input" placeholder="سجل كلامك هنا..." />
+        <button class="record" id="start-record">🎤 بدء التسجيل</button>
+        <button class="stop" id="stop-record">⏹️ إيقاف التسجيل</button>
+    </div>
 
     <div id="siri-container"></div>
 
@@ -67,6 +80,24 @@
         let analyser;
         let microphone;
         let dataArray;
+
+        // Web Speech API (Speech Recognition)
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = "ar-SA";  // تعيين اللغة للعربية
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+            document.getElementById("text-input").value = transcript;  // وضع النص في خانة الإدخال
+        };
+
+        recognition.onerror = (event) => {
+            console.error("حدث خطأ:", event.error);
+        };
 
         document.getElementById("start-record").addEventListener("click", async () => {
             try {
@@ -99,6 +130,9 @@
                 // تغيير حالة الأزرار
                 document.getElementById("start-record").style.display = "none";
                 document.getElementById("stop-record").style.display = "inline-block";
+
+                // بدء التسجيل الصوتي
+                recognition.start();
             } catch (error) {
                 alert("يرجى السماح بالوصول إلى الميكروفون.");
                 console.error(error);
@@ -115,6 +149,9 @@
             // تغيير حالة الأزرار
             document.getElementById("start-record").style.display = "inline-block";
             document.getElementById("stop-record").style.display = "none";
+
+            // إيقاف التسجيل الصوتي
+            recognition.stop();
         });
     </script>
 
