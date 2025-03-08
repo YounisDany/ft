@@ -1,133 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الصوت مع تأثير الموجة</title>
+    <script src="https://unpkg.com/siriwave/dist/siriwave.umd.min.js"></script>
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background: #1a1a1a;
+            text-align: center;
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
         }
-
-        .container {
-            position: relative;
-            margin-top: 100px;
+        #siri-container {
+            width: 100%;
+            height: 200px;
+            background-color: #222;
+            border-radius: 10px;
+            margin: 20px auto;
+            display: none; /* إخفاء الموجة حتى يبدأ التسجيل */
         }
-
-        #textInput {
-            width: 300px;
-            padding: 15px 50px 15px 20px;
-            border-radius: 30px;
-            border: none;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: 0.3s;
+        .controls {
+            margin-top: 20px;
         }
-
-        .mic-btn {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #7a5fff;
+        button {
+            padding: 15px 20px;
+            font-size: 18px;
+            margin: 5px;
             border: none;
             cursor: pointer;
-            transition: 0.3s;
+            border-radius: 5px;
         }
-
-        .mic-btn.active {
-            transform: translateY(-50%) scale(1.2);
-            background: #9b84ff;
+        .record {
+            background-color: #DC3545;
+            color: white;
         }
-
-        .siri-wave {
-            position: fixed;
-            bottom: 150px;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: rgba(122, 95, 255, 0.2);
-            animation: wave 1.5s infinite;
-            display: none;
-        }
-
-        @keyframes wave {
-            0% {
-                transform: scale(0.8);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(2.5);
-                opacity: 0;
-            }
-        }
-
-        .siri-wave.active {
-            display: block;
+        .stop {
+            background-color: #007BFF;
+            color: white;
+            display: none; /* إخفاء زر الإيقاف حتى يبدأ التسجيل */
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <input type="text" id="textInput" placeholder="اضغط على الميكروفون للتحدث...">
-        <button class="mic-btn" id="micButton">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="white">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1 1.93c-3.94-.49-7-3.85-7-7.93h2c0 3.31 2.69 6 6 6s6-2.69 6-6h2c0 4.08-3.06 7.44-7 7.93V19h4v2H8v-2h4v-3.07z"/>
-            </svg>
-        </button>
-    </div>
 
-    <div class="siri-wave" id="siriWave"></div>
+    <h1>تسجيل الصوت مع تأثير الموجة</h1>
+    
+    <button class="record" id="start-record">🎤 بدء التسجيل</button>
+    <button class="stop" id="stop-record">⏹️ إيقاف التسجيل</button>
+
+    <div id="siri-container"></div>
 
     <script>
-        const micButton = document.getElementById('micButton');
-        const textInput = document.getElementById('textInput');
-        const siriWave = document.getElementById('siriWave');
-        let isListening = false;
+        let siriWave = new SiriWave({
+            container: document.getElementById("siri-container"),
+            width: window.innerWidth * 0.9, 
+            height: 200,
+            style: "ios9",
+            speed: 0.1,
+            amplitude: 1,
+            autostart: false
+        });
 
-        // تهيئة Web Speech API
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'ar-SA'; // للغة العربية
-            
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                textInput.value = transcript;
-            }
+        let audioContext;
+        let analyser;
+        let microphone;
+        let dataArray;
 
-            recognition.onend = () => {
-                if (isListening) {
-                    recognition.start();
+        document.getElementById("start-record").addEventListener("click", async () => {
+            try {
+                // طلب الوصول إلى الميكروفون
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                // إنشاء AudioContext لمعالجة الصوت
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+
+                analyser.fftSize = 256;
+                let bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+
+                // إظهار الموجة وبدء الحركة
+                document.getElementById("siri-container").style.display = "block";
+                siriWave.start();
+
+                function updateWave() {
+                    analyser.getByteFrequencyData(dataArray);
+                    let volume = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
+                    siriWave.setAmplitude(volume / 50); // تغيير سعة الموجة حسب الصوت
+                    requestAnimationFrame(updateWave);
                 }
-            }
-        } else {
-            alert('المتصفح لا يدعم التعرف على الصوت!');
-        }
 
-        micButton.addEventListener('click', () => {
-            isListening = !isListening;
-            
-            if (isListening) {
-                // بدء الاستماع
-                textInput.style.display = 'none';
-                micButton.classList.add('active');
-                siriWave.classList.add('active');
-                recognition.start();
-            } else {
-                // إيقاف الاستماع
-                textInput.style.display = 'block';
-                micButton.classList.remove('active');
-                siriWave.classList.remove('active');
-                recognition.stop();
+                updateWave();
+
+                // تغيير حالة الأزرار
+                document.getElementById("start-record").style.display = "none";
+                document.getElementById("stop-record").style.display = "inline-block";
+            } catch (error) {
+                alert("يرجى السماح بالوصول إلى الميكروفون.");
+                console.error(error);
             }
         });
+
+        document.getElementById("stop-record").addEventListener("click", () => {
+            if (audioContext) {
+                audioContext.close();
+                siriWave.stop();
+                document.getElementById("siri-container").style.display = "none";
+            }
+
+            // تغيير حالة الأزرار
+            document.getElementById("start-record").style.display = "inline-block";
+            document.getElementById("stop-record").style.display = "none";
+        });
     </script>
+
 </body>
 </html>
